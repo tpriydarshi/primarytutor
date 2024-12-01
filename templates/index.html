@@ -3,119 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Primary Tutor - Your Personal Learning Companion</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <style>
-        .hidden {
-            display: none;
-        }
-        body {
-            background-color: #f0f9ff;
-            font-family: 'Arial', sans-serif;
-        }
-        .card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        .btn {
-            transition: all 0.3s ease;
-        }
-        .btn:hover {
-            transform: scale(1.05);
-        }
-    </style>
+    <title>Primary Tutor - AI-Powered Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container mx-auto px-4 py-8">
-        <div class="max-w-md mx-auto card p-6">
-            <h1 class="text-3xl font-bold text-center text-blue-600 mb-8">Welcome to Primary Tutor! 📚</h1>
+<body class="bg-gray-100 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Welcome to Primary Tutor! 🎓</h1>
+            <p class="text-xl text-gray-600 mb-8">Your AI-powered learning companion for 6th grade education</p>
             
-            <!-- User Information Form -->
-            <div id="userForm" class="space-y-4">
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">What's your name?</label>
-                    <input type="text" id="name" class="w-full p-2 border rounded-lg focus:outline-none focus:border-blue-500" placeholder="Enter your name">
+            <div class="space-x-4">
+                <a href="{{ url_for('login') }}"
+                    class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                    Login
+                </a>
+                <a href="{{ url_for('register') }}"
+                    class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50">
+                    Register
+                </a>
+            </div>
+        </div>
+
+        <div class="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900">📚 ICSE Curriculum</h3>
+                    <p class="mt-2 text-sm text-gray-500">
+                        Comprehensive coverage of all ICSE subjects for 6th grade students
+                    </p>
                 </div>
-                
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">How old are you?</label>
-                    <input type="number" id="age" class="w-full p-2 border rounded-lg focus:outline-none focus:border-blue-500" placeholder="Enter your age">
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900">🤖 AI-Powered Learning</h3>
+                    <p class="mt-2 text-sm text-gray-500">
+                        Personalized explanations and interactive learning experiences
+                    </p>
                 </div>
-                
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Which grade are you in?</label>
-                    <input type="text" id="grade" class="w-full p-2 border rounded-lg focus:outline-none focus:border-blue-500" placeholder="Enter your grade">
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg font-medium text-gray-900">📊 Progress Tracking</h3>
+                    <p class="mt-2 text-sm text-gray-500">
+                        Monitor your learning journey with detailed progress insights
+                    </p>
                 </div>
-                
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">What subject would you like to study?</label>
-                    <select id="subject" class="w-full p-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                        <option value="">Select a subject</option>
-                    </select>
-                </div>
-                
-                <button onclick="startLearning()" class="btn w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
-                    Let's Start Learning! 🚀
-                </button>
             </div>
         </div>
     </div>
-
-    <script>
-        // Fetch subjects when page loads
-        window.onload = async function() {
-            const response = await fetch('/get_subjects');
-            const subjects = await response.json();
-            const subjectSelect = document.getElementById('subject');
-            
-            subjects.forEach(subject => {
-                const option = document.createElement('option');
-                option.value = subject;
-                option.textContent = subject;
-                subjectSelect.appendChild(option);
-            });
-        }
-
-        async function startLearning() {
-            const userData = {
-                name: document.getElementById('name').value,
-                age: parseInt(document.getElementById('age').value),
-                grade: document.getElementById('grade').value,
-                subject: document.getElementById('subject').value,
-                topic: '' // Empty topic as it will be selected in dashboard
-            };
-
-            // Validate inputs
-            if (!userData.name || !userData.age || !userData.grade || !userData.subject) {
-                alert('Please fill in all fields!');
-                return;
-            }
-
-            try {
-                const response = await fetch('/save_user', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(userData)
-                });
-
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    // Redirect to dashboard
-                    window.location.href = result.redirect;
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Something went wrong. Please try again.');
-            }
-        }
-    </script>
 </body>
 </html>

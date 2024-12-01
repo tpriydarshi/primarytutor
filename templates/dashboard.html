@@ -3,142 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Primary Tutor - Learning Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f0f9ff;
-            font-family: 'Arial', sans-serif;
-        }
-        .dashboard-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-        .dashboard-card:hover {
-            transform: translateY(-5px);
-        }
-        .progress-bar {
-            height: 10px;
-            border-radius: 5px;
-            background: #e2e8f0;
-        }
-        .progress-value {
-            height: 100%;
-            border-radius: 5px;
-            background: #60a5fa;
-            transition: width 0.5s ease;
-        }
-    </style>
+    <title>Dashboard - Primary Tutor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container mx-auto px-4 py-8">
-        <!-- Header with User Info -->
-        <div class="flex justify-between items-center mb-8">
-            <div class="flex items-center space-x-4">
-                <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span class="text-white text-xl font-bold" id="userInitial"></span>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <h1 class="text-xl font-bold text-indigo-600">Primary Tutor</h1>
+                    </div>
                 </div>
+                <div class="flex items-center">
+                    <span class="text-gray-700 mr-4">Welcome, {{ current_user.name }}!</span>
+                    <a href="{{ url_for('logout') }}" 
+                       class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white shadow-lg rounded-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Let's Start Learning! 📚</h2>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-4 p-4 rounded {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="space-y-6">
                 <div>
-                    <h2 class="text-xl font-bold" id="userName">Loading...</h2>
-                    <p class="text-gray-600" id="userGrade">Grade Loading...</p>
+                    <label for="subject" class="block text-sm font-medium text-gray-700">Select a Subject</label>
+                    <select id="subject" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option value="">Choose a subject</option>
+                    </select>
                 </div>
-            </div>
-            <div class="text-right">
-                <p class="text-lg font-semibold" id="currentSubject">Subject Loading...</p>
-                <p class="text-gray-600" id="currentTopic">Topic Loading...</p>
-            </div>
-        </div>
 
-        <!-- Main Learning Area -->
-        <div class="grid md:grid-cols-3 gap-6">
-            <!-- Learning Progress -->
-            <div class="dashboard-card p-6">
-                <h3 class="text-lg font-bold mb-4">Your Progress</h3>
-                <div class="space-y-4">
-                    <div>
-                        <div class="flex justify-between mb-2">
-                            <span class="text-sm font-medium">Concept Understanding</span>
-                            <span class="text-sm font-medium" id="conceptProgress">0%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-value" style="width: 0%"></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between mb-2">
-                            <span class="text-sm font-medium">Practice Questions</span>
-                            <span class="text-sm font-medium" id="practiceProgress">0%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-value" style="width: 0%"></div>
-                        </div>
-                    </div>
+                <div id="chapterSection" class="hidden">
+                    <label for="chapter" class="block text-sm font-medium text-gray-700">Select a Chapter</label>
+                    <select id="chapter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option value="">Choose a chapter</option>
+                    </select>
                 </div>
+
+                <div id="topicSection" class="hidden">
+                    <label for="topic" class="block text-sm font-medium text-gray-700">Select a Topic</label>
+                    <select id="topic" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        <option value="">Choose a topic</option>
+                    </select>
+                </div>
+
+                <button onclick="startLearning()" 
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Start Learning
+                </button>
             </div>
 
-            <!-- Current Topic -->
-            <div class="dashboard-card p-6 md:col-span-2">
-                <h3 class="text-lg font-bold mb-4">Learning Journey</h3>
-                <div class="space-y-4">
-                    <div class="flex items-center space-x-2">
-                        <i class="fas fa-book text-blue-500"></i>
-                        <span class="font-medium">Current Chapter:</span>
-                        <select id="chapterSelect" class="ml-2 p-2 border rounded-lg" onchange="loadTopics()">
-                            <option value="">Select Chapter</option>
-                        </select>
+            <!-- Progress Section -->
+            <div class="mt-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Your Progress</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-sm font-medium text-gray-500">Concepts Mastered</div>
+                        <div class="mt-1 text-2xl font-semibold text-indigo-600">{{ current_user.concept_progress }}%</div>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <i class="fas fa-tasks text-blue-500"></i>
-                        <span class="font-medium">Current Topic:</span>
-                        <select id="topicSelect" class="ml-2 p-2 border rounded-lg">
-                            <option value="">Select Topic</option>
-                        </select>
-                    </div>
-                    <div class="mt-4 p-4 bg-blue-50 rounded-lg">
-                        <h4 class="font-bold text-blue-600 mb-2">Learning Objectives:</h4>
-                        <ul id="learningObjectives" class="list-disc list-inside text-gray-700">
-                        </ul>
-                    </div>
-                    <div class="mt-4">
-                        <button onclick="startLearning()" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                            Start Learning
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Learning Tools -->
-        <div class="grid md:grid-cols-3 gap-6 mt-6">
-            <div class="dashboard-card p-6 cursor-pointer" onclick="openTool('concepts')">
-                <div class="flex items-center space-x-3">
-                    <i class="fas fa-lightbulb text-2xl text-yellow-500"></i>
-                    <div>
-                        <h3 class="font-bold">Core Concepts</h3>
-                        <p class="text-sm text-gray-600">Master the fundamentals</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="dashboard-card p-6 cursor-pointer" onclick="openTool('practice')">
-                <div class="flex items-center space-x-3">
-                    <i class="fas fa-pencil-alt text-2xl text-green-500"></i>
-                    <div>
-                        <h3 class="font-bold">Practice Questions</h3>
-                        <p class="text-sm text-gray-600">Test your knowledge</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="dashboard-card p-6 cursor-pointer" onclick="openTool('visualize')">
-                <div class="flex items-center space-x-3">
-                    <i class="fas fa-chart-bar text-2xl text-purple-500"></i>
-                    <div>
-                        <h3 class="font-bold">Visual Learning</h3>
-                        <p class="text-sm text-gray-600">Interactive diagrams</p>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="text-sm font-medium text-gray-500">Practice Completed</div>
+                        <div class="mt-1 text-2xl font-semibold text-indigo-600">{{ current_user.practice_progress }}%</div>
                     </div>
                 </div>
             </div>
@@ -146,120 +86,121 @@
     </div>
 
     <script>
-        // Simulated user data - will be replaced with actual data from backend
-        let userData = {
-            name: '',
-            grade: '',
-            subject: '',
-            topic: '',
-            progress: {
-                concepts: 0,
-                practice: 0
-            }
-        };
-
-        async function loadUserData() {
-            try {
-                const response = await fetch('/get_user_data');
-                userData = await response.json();
-                updateDashboard();
-                await loadChapters();
-            } catch (error) {
-                console.error('Error loading user data:', error);
-            }
-        }
-
-        async function loadChapters() {
-            try {
-                const response = await fetch(`/get_chapters/${userData.subject}`);
-                const chapters = await response.json();
-                const chapterSelect = document.getElementById('chapterSelect');
-                
-                // Clear existing options
-                chapterSelect.innerHTML = '<option value="">Select Chapter</option>';
-                
-                chapters.forEach(chapter => {
-                    const option = document.createElement('option');
-                    option.value = chapter;
-                    option.textContent = chapter;
-                    chapterSelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error loading chapters:', error);
-            }
-        }
-
-        async function loadTopics() {
-            const chapter = document.getElementById('chapterSelect').value;
-            if (!chapter) return;
-
-            try {
-                const response = await fetch(`/get_topics/${userData.subject}/${encodeURIComponent(chapter)}`);
-                const data = await response.json();
-                const topicSelect = document.getElementById('topicSelect');
-                const objectivesList = document.getElementById('learningObjectives');
-                
-                // Clear existing options
-                topicSelect.innerHTML = '<option value="">Select Topic</option>';
-                objectivesList.innerHTML = '';
-                
-                // Add topics
-                data.topics.forEach(topic => {
-                    const option = document.createElement('option');
-                    option.value = topic;
-                    option.textContent = topic;
-                    topicSelect.appendChild(option);
-                });
-
-                // Add learning objectives
-                data.learning_objectives.forEach(objective => {
-                    const li = document.createElement('li');
-                    li.textContent = objective;
-                    objectivesList.appendChild(li);
-                });
-            } catch (error) {
-                console.error('Error loading topics:', error);
-            }
-        }
-
-        function updateDashboard() {
-            // Update user information
-            document.getElementById('userInitial').textContent = userData.name.charAt(0).toUpperCase();
-            document.getElementById('userName').textContent = userData.name;
-            document.getElementById('userGrade').textContent = `Grade ${userData.grade}`;
-            document.getElementById('currentSubject').textContent = userData.subject;
-            document.getElementById('currentTopic').textContent = userData.topic;
+        // Fetch subjects when page loads
+        window.onload = async function() {
+            const response = await fetch('/get_subjects');
+            const subjects = await response.json();
+            const subjectSelect = document.getElementById('subject');
             
-            // Update progress bars
-            document.getElementById('conceptProgress').textContent = `${userData.progress.concepts}%`;
-            document.getElementById('practiceProgress').textContent = `${userData.progress.practice}%`;
-            
-            // Update progress bar visuals
-            document.querySelectorAll('.progress-value')[0].style.width = `${userData.progress.concepts}%`;
-            document.querySelectorAll('.progress-value')[1].style.width = `${userData.progress.practice}%`;
+            subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject;
+                option.textContent = subject;
+                subjectSelect.appendChild(option);
+            });
+
+            // If user has a last subject, select it
+            if ('{{ current_user.last_subject }}') {
+                subjectSelect.value = '{{ current_user.last_subject }}';
+                await loadChapters('{{ current_user.last_subject }}');
+            }
         }
 
-        function openTool(tool) {
-            // Will be implemented to handle different learning tools
-            console.log(`Opening ${tool} tool`);
-            // Add navigation to specific learning interfaces
+        // Load chapters when subject is selected
+        document.getElementById('subject').addEventListener('change', async function() {
+            const subject = this.value;
+            if (subject) {
+                await loadChapters(subject);
+            } else {
+                document.getElementById('chapterSection').classList.add('hidden');
+                document.getElementById('topicSection').classList.add('hidden');
+            }
+        });
+
+        // Load topics when chapter is selected
+        document.getElementById('chapter').addEventListener('change', async function() {
+            const subject = document.getElementById('subject').value;
+            const chapter = this.value;
+            if (chapter) {
+                await loadTopics(subject, chapter);
+            } else {
+                document.getElementById('topicSection').classList.add('hidden');
+            }
+        });
+
+        async function loadChapters(subject) {
+            const response = await fetch(`/get_chapters/${subject}`);
+            const chapters = await response.json();
+            const chapterSelect = document.getElementById('chapter');
+            
+            // Clear existing options
+            chapterSelect.innerHTML = '<option value="">Choose a chapter</option>';
+            
+            chapters.forEach(chapter => {
+                const option = document.createElement('option');
+                option.value = chapter;
+                option.textContent = chapter;
+                chapterSelect.appendChild(option);
+            });
+
+            // Show chapter section
+            document.getElementById('chapterSection').classList.remove('hidden');
+            // Hide topic section until chapter is selected
+            document.getElementById('topicSection').classList.add('hidden');
         }
 
-        function startLearning() {
-            const chapter = document.getElementById('chapterSelect').value;
-            const topic = document.getElementById('topicSelect').value;
+        async function loadTopics(subject, chapter) {
+            const response = await fetch(`/get_topics/${subject}/${chapter}`);
+            const data = await response.json();
+            const topicSelect = document.getElementById('topic');
             
-            if (!chapter || !topic) {
-                alert('Please select both a chapter and topic before starting.');
+            // Clear existing options
+            topicSelect.innerHTML = '<option value="">Choose a topic</option>';
+            
+            data.topics.forEach(topic => {
+                const option = document.createElement('option');
+                option.value = topic;
+                option.textContent = topic;
+                topicSelect.appendChild(option);
+            });
+
+            // Show topic section
+            document.getElementById('topicSection').classList.remove('hidden');
+        }
+
+        async function startLearning() {
+            const subject = document.getElementById('subject').value;
+            const chapter = document.getElementById('chapter').value;
+            const topic = document.getElementById('topic').value;
+
+            if (!subject || !chapter || !topic) {
+                alert('Please select subject, chapter, and topic!');
                 return;
             }
-            
-            // Navigate to learning interface
-            window.location.href = `/learning?subject=${encodeURIComponent(userData.subject)}&chapter=${encodeURIComponent(chapter)}&topic=${encodeURIComponent(topic)}`;
-        }
 
-        // Load user data when page loads
-        window.onload = loadUserData;
+            try {
+                const response = await fetch('/save_user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        subject: subject,
+                        chapter: chapter,
+                        topic: topic
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    window.location.href = `/learn/${subject}/${chapter}/${topic}`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Something went wrong. Please try again.');
+            }
+        }
     </script>
 </body>
 </html>
