@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Primary Tutor - Learning Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f9ff;
+            font-family: 'Arial', sans-serif;
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        .progress-bar {
+            height: 10px;
+            border-radius: 5px;
+            background: #e2e8f0;
+        }
+        .progress-value {
+            height: 100%;
+            border-radius: 5px;
+            background: #60a5fa;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header with User Info -->
+        <div class="flex justify-between items-center mb-8">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span class="text-white text-xl font-bold" id="userInitial"></span>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold" id="userName">Loading...</h2>
+                    <p class="text-gray-600" id="userGrade">Grade Loading...</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-lg font-semibold" id="currentSubject">Subject Loading...</p>
+                <p class="text-gray-600" id="currentTopic">Topic Loading...</p>
+            </div>
+        </div>
+
+        <!-- Main Learning Area -->
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Learning Progress -->
+            <div class="dashboard-card p-6">
+                <h3 class="text-lg font-bold mb-4">Your Progress</h3>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-sm font-medium">Concept Understanding</span>
+                            <span class="text-sm font-medium" id="conceptProgress">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-value" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-sm font-medium">Practice Questions</span>
+                            <span class="text-sm font-medium" id="practiceProgress">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-value" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Topic -->
+            <div class="dashboard-card p-6 md:col-span-2">
+                <h3 class="text-lg font-bold mb-4">Learning Journey</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-book text-blue-500"></i>
+                        <span class="font-medium">Current Chapter:</span>
+                        <span id="currentChapter">Loading...</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-tasks text-blue-500"></i>
+                        <span class="font-medium">Next Goal:</span>
+                        <span id="nextGoal">Understanding core concepts</span>
+                    </div>
+                    <div class="mt-4">
+                        <button onclick="startLearning()" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                            Continue Learning
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Learning Tools -->
+        <div class="grid md:grid-cols-3 gap-6 mt-6">
+            <div class="dashboard-card p-6 cursor-pointer" onclick="openTool('concepts')">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-lightbulb text-2xl text-yellow-500"></i>
+                    <div>
+                        <h3 class="font-bold">Core Concepts</h3>
+                        <p class="text-sm text-gray-600">Master the fundamentals</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card p-6 cursor-pointer" onclick="openTool('practice')">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-pencil-alt text-2xl text-green-500"></i>
+                    <div>
+                        <h3 class="font-bold">Practice Questions</h3>
+                        <p class="text-sm text-gray-600">Test your knowledge</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card p-6 cursor-pointer" onclick="openTool('visualize')">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-chart-bar text-2xl text-purple-500"></i>
+                    <div>
+                        <h3 class="font-bold">Visual Learning</h3>
+                        <p class="text-sm text-gray-600">Interactive diagrams</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulated user data - will be replaced with actual data from backend
+        let userData = {
+            name: '',
+            grade: '',
+            subject: '',
+            topic: '',
+            progress: {
+                concepts: 0,
+                practice: 0
+            }
+        };
+
+        async function loadUserData() {
+            try {
+                const response = await fetch('/get_user_data');
+                userData = await response.json();
+                updateDashboard();
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+
+        function updateDashboard() {
+            // Update user information
+            document.getElementById('userInitial').textContent = userData.name.charAt(0).toUpperCase();
+            document.getElementById('userName').textContent = userData.name;
+            document.getElementById('userGrade').textContent = `Grade ${userData.grade}`;
+            document.getElementById('currentSubject').textContent = userData.subject;
+            document.getElementById('currentTopic').textContent = userData.topic;
+            
+            // Update progress bars
+            document.getElementById('conceptProgress').textContent = `${userData.progress.concepts}%`;
+            document.getElementById('practiceProgress').textContent = `${userData.progress.practice}%`;
+            
+            // Update progress bar visuals
+            document.querySelectorAll('.progress-value')[0].style.width = `${userData.progress.concepts}%`;
+            document.querySelectorAll('.progress-value')[1].style.width = `${userData.progress.practice}%`;
+        }
+
+        function openTool(tool) {
+            // Will be implemented to handle different learning tools
+            console.log(`Opening ${tool} tool`);
+            // Add navigation to specific learning interfaces
+        }
+
+        function startLearning() {
+            // Will be implemented to start the learning session
+            console.log('Starting learning session');
+            // Add navigation to learning interface
+        }
+
+        // Load user data when page loads
+        window.onload = loadUserData;
+    </script>
+</body>
+</html>
