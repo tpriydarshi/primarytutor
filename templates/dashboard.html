@@ -86,16 +86,25 @@
                     <div class="flex items-center space-x-2">
                         <i class="fas fa-book text-blue-500"></i>
                         <span class="font-medium">Current Chapter:</span>
-                        <span id="currentChapter">Loading...</span>
+                        <select id="chapterSelect" class="ml-2 p-2 border rounded-lg" onchange="loadTopics()">
+                            <option value="">Select Chapter</option>
+                        </select>
                     </div>
                     <div class="flex items-center space-x-2">
                         <i class="fas fa-tasks text-blue-500"></i>
-                        <span class="font-medium">Next Goal:</span>
-                        <span id="nextGoal">Understanding core concepts</span>
+                        <span class="font-medium">Current Topic:</span>
+                        <select id="topicSelect" class="ml-2 p-2 border rounded-lg">
+                            <option value="">Select Topic</option>
+                        </select>
+                    </div>
+                    <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                        <h4 class="font-bold text-blue-600 mb-2">Learning Objectives:</h4>
+                        <ul id="learningObjectives" class="list-disc list-inside text-gray-700">
+                        </ul>
                     </div>
                     <div class="mt-4">
                         <button onclick="startLearning()" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                            Continue Learning
+                            Start Learning
                         </button>
                     </div>
                 </div>
@@ -154,8 +163,62 @@
                 const response = await fetch('/get_user_data');
                 userData = await response.json();
                 updateDashboard();
+                await loadChapters();
             } catch (error) {
                 console.error('Error loading user data:', error);
+            }
+        }
+
+        async function loadChapters() {
+            try {
+                const response = await fetch(`/get_chapters/${userData.subject}`);
+                const chapters = await response.json();
+                const chapterSelect = document.getElementById('chapterSelect');
+                
+                // Clear existing options
+                chapterSelect.innerHTML = '<option value="">Select Chapter</option>';
+                
+                chapters.forEach(chapter => {
+                    const option = document.createElement('option');
+                    option.value = chapter;
+                    option.textContent = chapter;
+                    chapterSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading chapters:', error);
+            }
+        }
+
+        async function loadTopics() {
+            const chapter = document.getElementById('chapterSelect').value;
+            if (!chapter) return;
+
+            try {
+                const response = await fetch(`/get_topics/${userData.subject}/${encodeURIComponent(chapter)}`);
+                const data = await response.json();
+                const topicSelect = document.getElementById('topicSelect');
+                const objectivesList = document.getElementById('learningObjectives');
+                
+                // Clear existing options
+                topicSelect.innerHTML = '<option value="">Select Topic</option>';
+                objectivesList.innerHTML = '';
+                
+                // Add topics
+                data.topics.forEach(topic => {
+                    const option = document.createElement('option');
+                    option.value = topic;
+                    option.textContent = topic;
+                    topicSelect.appendChild(option);
+                });
+
+                // Add learning objectives
+                data.learning_objectives.forEach(objective => {
+                    const li = document.createElement('li');
+                    li.textContent = objective;
+                    objectivesList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error loading topics:', error);
             }
         }
 
@@ -183,9 +246,16 @@
         }
 
         function startLearning() {
-            // Will be implemented to start the learning session
-            console.log('Starting learning session');
-            // Add navigation to learning interface
+            const chapter = document.getElementById('chapterSelect').value;
+            const topic = document.getElementById('topicSelect').value;
+            
+            if (!chapter || !topic) {
+                alert('Please select both a chapter and topic before starting.');
+                return;
+            }
+            
+            // Navigate to learning interface
+            window.location.href = `/learning?subject=${encodeURIComponent(userData.subject)}&chapter=${encodeURIComponent(chapter)}&topic=${encodeURIComponent(topic)}`;
         }
 
         // Load user data when page loads

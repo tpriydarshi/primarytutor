@@ -59,13 +59,8 @@
                     </select>
                 </div>
                 
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">What topic would you like to learn?</label>
-                    <input type="text" id="topic" class="w-full p-2 border rounded-lg focus:outline-none focus:border-blue-500" placeholder="Enter the topic">
-                </div>
-                
                 <button onclick="startLearning()" class="btn w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
-                    Start Learning! 🚀
+                    Let's Start Learning! 🚀
                 </button>
             </div>
         </div>
@@ -92,11 +87,11 @@
                 age: parseInt(document.getElementById('age').value),
                 grade: document.getElementById('grade').value,
                 subject: document.getElementById('subject').value,
-                topic: document.getElementById('topic').value
+                topic: '' // Empty topic as it will be selected in dashboard
             };
 
             // Validate inputs
-            if (!userData.name || !userData.age || !userData.grade || !userData.subject || !userData.topic) {
+            if (!userData.name || !userData.age || !userData.grade || !userData.subject) {
                 alert('Please fill in all fields!');
                 return;
             }

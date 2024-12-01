@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Session - Primary Tutor</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            background-color: #f0f9ff;
+            font-family: 'Arial', sans-serif;
+        }
+        .learning-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .explanation img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .video-card {
+            transition: transform 0.3s ease;
+        }
+        .video-card:hover {
+            transform: translateY(-5px);
+        }
+        .assessment-question {
+            background-color: #f8fafc;
+            border-left: 4px solid #60a5fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-blue-600" id="topicTitle">Loading...</h1>
+                <p class="text-gray-600" id="subjectName">Loading...</p>
+            </div>
+            <button onclick="returnToDashboard()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                Back to Dashboard
+            </button>
+        </div>
+
+        <!-- Learning Content -->
+        <div class="space-y-8">
+            <!-- Step 1: Concept Explanation -->
+            <div id="explanationSection" class="learning-card p-6">
+                <h2 class="text-xl font-bold mb-4">Understanding the Concept 🎯</h2>
+                <div id="explanation" class="explanation prose">
+                    Loading explanation...
+                </div>
+            </div>
+
+            <!-- Step 2: Video Resources -->
+            <div id="videoSection" class="learning-card p-6 hidden">
+                <h2 class="text-xl font-bold mb-4">Video Resources 🎥</h2>
+                <div id="videoList" class="grid md:grid-cols-2 gap-4">
+                </div>
+            </div>
+
+            <!-- Step 3: Questions and Answers -->
+            <div id="qaSection" class="learning-card p-6 hidden">
+                <h2 class="text-xl font-bold mb-4">Ask Questions 🤔</h2>
+                <div class="space-y-4">
+                    <textarea id="questionInput" 
+                              class="w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500"
+                              placeholder="What would you like to know more about?"
+                              rows="3"></textarea>
+                    <button onclick="askQuestion()" 
+                            class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                        Ask Question
+                    </button>
+                    <div id="answerArea" class="mt-4 hidden">
+                        <h3 class="font-bold mb-2">Answer:</h3>
+                        <div id="answer" class="p-4 bg-blue-50 rounded-lg"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assessment Section -->
+            <div id="assessmentSection" class="learning-card p-6 hidden">
+                <h2 class="text-xl font-bold mb-4">Let's Test Your Knowledge! 📝</h2>
+                <div id="assessment" class="space-y-6">
+                    <!-- Assessment content will be dynamically added here -->
+                </div>
+                <button onclick="submitAssessment()" 
+                        class="mt-6 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600">
+                    Submit Answers
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between mt-8">
+            <button id="prevButton" 
+                    onclick="previousStep()" 
+                    class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 hidden">
+                Previous Step
+            </button>
+            <button id="nextButton" 
+                    onclick="nextStep()" 
+                    class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                Next Step
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let assessmentData = null;
+        const totalSteps = 4;
+
+        // Initialize the learning session
+        async function initializeLearning() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const subject = urlParams.get('subject');
+            const topic = urlParams.get('topic');
+            const chapter = urlParams.get('chapter');
+
+            document.getElementById('topicTitle').textContent = topic;
+            document.getElementById('subjectName').textContent = `${subject} - ${chapter}`;
+
+            // Start the explanation
+            await loadExplanation();
+        }
+
+        async function loadExplanation() {
+            try {
+                const response = await fetch('/get_explanation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        subject: document.getElementById('subjectName').textContent.split('-')[0].trim(),
+                        topic: document.getElementById('topicTitle').textContent
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('explanation').innerHTML = marked.parse(data.content);
+            } catch (error) {
+                console.error('Error loading explanation:', error);
+            }
+        }
+
+        async function loadVideos() {
+            try {
+                const response = await fetch('/get_videos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        subject: document.getElementById('subjectName').textContent.split('-')[0].trim(),
+                        topic: document.getElementById('topicTitle').textContent
+                    })
+                });
+
+                const data = await response.json();
+                const videoList = document.getElementById('videoList');
+                videoList.innerHTML = '';
+
+                data.content.forEach(video => {
+                    const videoCard = document.createElement('div');
+                    videoCard.className = 'video-card bg-white p-4 rounded-lg shadow';
+                    videoCard.innerHTML = `
+                        <h3 class="font-bold mb-2">${video.title}</h3>
+                        <p class="text-sm text-gray-600 mb-2">${video.description}</p>
+                        <a href="${video.url}" target="_blank" 
+                           class="text-blue-500 hover:text-blue-700">
+                            Watch Video <i class="fas fa-external-link-alt ml-1"></i>
+                        </a>
+                    `;
+                    videoList.appendChild(videoCard);
+                });
+            } catch (error) {
+                console.error('Error loading videos:', error);
+            }
+        }
+
+        async function askQuestion() {
+            const question = document.getElementById('questionInput').value;
+            if (!question.trim()) return;
+
+            try {
+                const response = await fetch('/ask_question', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question })
+                });
+
+                const data = await response.json();
+                const answerArea = document.getElementById('answerArea');
+                const answer = document.getElementById('answer');
+                
+                answerArea.classList.remove('hidden');
+                answer.innerHTML = marked.parse(data.content);
+                
+                // Clear the question input
+                document.getElementById('questionInput').value = '';
+            } catch (error) {
+                console.error('Error asking question:', error);
+            }
+        }
+
+        async function loadAssessment() {
+            try {
+                const response = await fetch('/get_assessment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        subject: document.getElementById('subjectName').textContent.split('-')[0].trim(),
+                        topic: document.getElementById('topicTitle').textContent
+                    })
+                });
+
+                const data = await response.json();
+                assessmentData = data.content;
+                displayAssessment(assessmentData);
+            } catch (error) {
+                console.error('Error loading assessment:', error);
+            }
+        }
+
+        function displayAssessment(assessment) {
+            const assessmentDiv = document.getElementById('assessment');
+            assessmentDiv.innerHTML = '';
+
+            // Multiple Choice Questions
+            assessment.multiple_choice.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'assessment-question p-4 rounded-lg mb-4';
+                questionDiv.innerHTML = `
+                    <p class="font-bold mb-2">Question ${index + 1}: ${q.question}</p>
+                    <div class="space-y-2">
+                        ${q.options.map((option, i) => `
+                            <div class="flex items-center">
+                                <input type="radio" id="q${index}_${i}" name="q${index}" value="${option}">
+                                <label for="q${index}_${i}" class="ml-2">${option}</label>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                assessmentDiv.appendChild(questionDiv);
+            });
+
+            // Short Answer Question
+            const shortAnswerDiv = document.createElement('div');
+            shortAnswerDiv.className = 'assessment-question p-4 rounded-lg mb-4';
+            shortAnswerDiv.innerHTML = `
+                <p class="font-bold mb-2">Short Answer: ${assessment.short_answer.question}</p>
+                <textarea id="shortAnswer" class="w-full p-2 border rounded-lg" rows="3"></textarea>
+            `;
+            assessmentDiv.appendChild(shortAnswerDiv);
+
+            // Practical Question
+            const practicalDiv = document.createElement('div');
+            practicalDiv.className = 'assessment-question p-4 rounded-lg';
+            practicalDiv.innerHTML = `
+                <p class="font-bold mb-2">Practical Application: ${assessment.practical.question}</p>
+                <div class="mb-2">
+                    <p class="text-sm text-gray-600">Hints:</p>
+                    <ul class="list-disc list-inside">
+                        ${assessment.practical.hints.map(hint => `<li>${hint}</li>`).join('')}
+                    </ul>
+                </div>
+                <textarea id="practicalAnswer" class="w-full p-2 border rounded-lg" rows="4"></textarea>
+            `;
+            assessmentDiv.appendChild(practicalDiv);
+        }
+
+        async function submitAssessment() {
+            // Collect answers
+            const answers = {
+                multiple_choice: [],
+                short_answer: document.getElementById('shortAnswer').value,
+                practical: document.getElementById('practicalAnswer').value
+            };
+
+            // Collect multiple choice answers
+            assessmentData.multiple_choice.forEach((_, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                answers.multiple_choice.push(selected ? selected.value : null);
+            });
+
+            try {
+                const response = await fetch('/submit_assessment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        answers,
+                        assessment: assessmentData
+                    })
+                });
+
+                const result = await response.json();
+                // Handle the assessment results
+                displayAssessmentResults(result);
+            } catch (error) {
+                console.error('Error submitting assessment:', error);
+            }
+        }
+
+        function displayAssessmentResults(results) {
+            // Implementation for displaying assessment results
+            // This will be added later
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateUI();
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateUI();
+            }
+        }
+
+        function updateUI() {
+            // Hide all sections
+            document.getElementById('explanationSection').classList.add('hidden');
+            document.getElementById('videoSection').classList.add('hidden');
+            document.getElementById('qaSection').classList.add('hidden');
+            document.getElementById('assessmentSection').classList.add('hidden');
+
+            // Show current section
+            switch(currentStep) {
+                case 1:
+                    document.getElementById('explanationSection').classList.remove('hidden');
+                    document.getElementById('prevButton').classList.add('hidden');
+                    break;
+                case 2:
+                    document.getElementById('videoSection').classList.remove('hidden');
+                    document.getElementById('prevButton').classList.remove('hidden');
+                    loadVideos();
+                    break;
+                case 3:
+                    document.getElementById('qaSection').classList.remove('hidden');
+                    break;
+                case 4:
+                    document.getElementById('assessmentSection').classList.remove('hidden');
+                    document.getElementById('nextButton').classList.add('hidden');
+                    loadAssessment();
+                    break;
+            }
+
+            // Update navigation buttons
+            document.getElementById('prevButton').classList.toggle('hidden', currentStep === 1);
+            document.getElementById('nextButton').classList.toggle('hidden', currentStep === totalSteps);
+        }
+
+        function returnToDashboard() {
+            window.location.href = '/dashboard';
+        }
+
+        // Initialize when page loads
+        window.onload = initializeLearning;
+    </script>
+</body>
+</html>
