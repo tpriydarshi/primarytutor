@@ -1,6 +1,6 @@
 # Primary Tutor - AI-Powered Educational Platform
 
-An intelligent tutoring system designed specifically for 6th-grade students following the ICSE curriculum. This platform combines AI-powered explanations, interactive learning, and multimedia content to create an engaging educational experience.
+An intelligent tutoring system designed specifically for my 6th-grade son following the ICSE curriculum. It could be configured to support student for any other grade as well. This platform combines AI-powered explanations, interactive learning, and multimedia content to create an engaging educational experience.
 
 ## 🎯 Features
 
