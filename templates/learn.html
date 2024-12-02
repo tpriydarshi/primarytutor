@@ -82,12 +82,8 @@
             <!-- Phase 4: Practice -->
             <div id="practicePhase" class="hidden bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-2xl font-bold mb-4">Practice Questions</h2>
-                <div id="practiceQuestions" class="prose">
-                    <div class="animate-pulse">
-                        <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                        <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                        <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-                    </div>
+                <div id="practiceQuestions" class="space-y-6 prose max-w-none">
+                    <!-- Questions will be loaded here -->
                 </div>
             </div>
         </div>
@@ -99,6 +95,8 @@
             breaks: true,
             gfm: true
         });
+
+        let assessmentData;
 
         document.addEventListener('DOMContentLoaded', function() {
             loadPhase1();
@@ -188,27 +186,46 @@
         }
 
         function loadPracticeQuestions() {
-            fetch('/get_practice_questions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
-            .then(data => {
-                if (data.type === 'practice' && data.content) {
-                    document.getElementById('practiceQuestions').innerHTML = marked.parse(data.content);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('practiceQuestions').innerHTML = 
-                    '<p class="text-red-500">Failed to load practice questions. Please try refreshing the page.</p>';
-            });
+    const questionsDiv = document.getElementById('practiceQuestions');
+    
+    // Show loading state
+    questionsDiv.innerHTML = `
+        <div class="animate-pulse">
+            <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+            <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+            <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+        </div>
+    `;
+
+    fetch('/get_practice_questions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
         }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
+    .then(data => {
+        if (data.type === 'practice' && data.content) {
+            questionsDiv.innerHTML = marked.parse(data.content);
+        } else {
+            throw new Error('Invalid response format');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        questionsDiv.innerHTML = `
+            <div class="p-4 bg-red-50 rounded-lg">
+                <p class="text-red-500 mb-2">Failed to load practice questions.</p>
+                <button onclick="loadPracticeQuestions()" 
+                        class="text-red-600 hover:text-red-700 underline">
+                    Try Again
+                </button>
+            </div>`;
+    });
+}
 
         function askQuestion() {
             const questionInput = document.getElementById('question');
